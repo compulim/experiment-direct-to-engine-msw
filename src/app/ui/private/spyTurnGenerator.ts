@@ -6,7 +6,7 @@ type Patcher<T> = (value: T) => T;
 export default function spyTurnGenerator(
   turnGenerator: TurnGenerator
 ): readonly [TurnGenerator, AsyncIterator<Activity>] {
-  let controller: ReadableStreamDefaultController<Activity>;
+  let controller: ReadableStreamDefaultController<Activity> | undefined;
 
   const readableStream = new ReadableStream<Activity>({
     start(controller_) {
@@ -19,7 +19,7 @@ export default function spyTurnGenerator(
       const turnGeneratorWithLastValue = asyncGeneratorWithLastValue(turnGenerator);
 
       for await (const activity of turnGeneratorWithLastValue) {
-        controller.enqueue(activity);
+        controller?.enqueue(activity);
 
         yield activity;
       }
