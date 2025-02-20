@@ -1,9 +1,9 @@
 import './ActivityInput.css';
 
-import { type ChangeEventHandler, memo, useCallback, useMemo, KeyboardEventHandler, useRef } from 'react';
+import { onErrorResumeNext } from 'on-error-resume-next';
+import { type ChangeEventHandler, KeyboardEventHandler, memo, useCallback, useMemo, useRef } from 'react';
 import { useRefFrom } from 'use-ref-from';
 
-import onErrorResumeNext from '../util/onErrorResumeNext';
 import useStateWithDebounce from './hooks/useStateWithDebounce';
 
 type Props = {
@@ -26,7 +26,8 @@ export default memo(function ActivityInput({ onChange, value: valueFromProps }: 
   const handleKeyDown = useCallback<KeyboardEventHandler<HTMLTextAreaElement>>(
     event => {
       if (event.altKey && event.shiftKey && (event.key === 'f' || event.key === 'F')) {
-        const prettyValue = onErrorResumeNext(() => JSON.stringify(JSON.parse(valueRef.current), null, 2));
+        const prettyValue: string =
+          onErrorResumeNext(() => JSON.stringify(JSON.parse(valueRef.current), null, 2)) || '';
 
         if (prettyValue) {
           const { current } = elementRef;
