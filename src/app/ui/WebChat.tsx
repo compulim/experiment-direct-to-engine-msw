@@ -4,15 +4,13 @@ import { Components } from 'botframework-webchat';
 import {
   TestCanvasBotStrategy,
   createHalfDuplexChatAdapter,
-  toDirectLineJS,
-  type TurnGenerator
+  toDirectLineJS
 } from 'copilot-studio-direct-to-engine-chat-adapter';
-import { asyncGeneratorWithLastValue } from 'iter-fest';
+import { asyncIteratorToAsyncIterable } from 'iter-fest';
 import { memo, useMemo } from 'react';
+import spyTurnGenerator from './private/spyTurnGenerator';
 
 const { BasicWebChat, Composer } = Components;
-
-type Patcher<T> = (value: T) => T;
 
 export default memo(function Chat() {
   const strategy = useMemo(
@@ -30,18 +28,15 @@ export default memo(function Chat() {
   );
 
   const directLine = useMemo(() => {
-    const patchTurnGenerator: Patcher<TurnGenerator> = turnGenerator =>
-      (async function* () {
-        const turnGeneratorWithLastValue = asyncGeneratorWithLastValue(turnGenerator);
+    const [turnGenerator, spyingActivities] = spyTurnGenerator(createHalfDuplexChatAdapter(strategy));
 
-        for await (const activity of turnGeneratorWithLastValue) {
-          yield activity;
-        }
+    (async function () {
+      for await (const activity of asyncIteratorToAsyncIterable(spyingActivities)) {
+        console.log('SPY', activity);
+      }
+    })();
 
-        return (...args) => patchTurnGenerator(turnGeneratorWithLastValue.lastValue()(...args));
-      })();
-
-    return toDirectLineJS(patchTurnGenerator(createHalfDuplexChatAdapter(strategy)));
+    return toDirectLineJS(turnGenerator);
   }, []);
 
   return (
