@@ -12,9 +12,11 @@ import { memo, useMemo } from 'react';
 
 const { BasicWebChat, Composer } = Components;
 
+type Patcher<T> = (value: T) => T;
+
 export default memo(function Chat() {
-  const directLine = useMemo(() => {
-    const startConversation = createHalfDuplexChatAdapter(
+  const strategy = useMemo(
+    () =>
       new TestCanvasBotStrategy({
         botId: 'bot-id',
         environmentId: 'environment-id',
@@ -23,10 +25,12 @@ export default memo(function Chat() {
         },
         islandURI: new URL('https://example.com/api/directtoengine/', location.href),
         transport: 'auto'
-      })
-    );
+      }),
+    []
+  );
 
-    const patchTurnGenerator: (turnGenerator: TurnGenerator) => TurnGenerator = turnGenerator =>
+  const directLine = useMemo(() => {
+    const patchTurnGenerator: Patcher<TurnGenerator> = turnGenerator =>
       (async function* () {
         const turnGeneratorWithLastValue = asyncGeneratorWithLastValue(turnGenerator);
 
@@ -37,7 +41,7 @@ export default memo(function Chat() {
         return (...args) => patchTurnGenerator(turnGeneratorWithLastValue.lastValue()(...args));
       })();
 
-    return toDirectLineJS(patchTurnGenerator(startConversation));
+    return toDirectLineJS(patchTurnGenerator(createHalfDuplexChatAdapter(strategy)));
   }, []);
 
   return (
