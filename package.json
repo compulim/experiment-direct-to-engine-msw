@@ -5,6 +5,11 @@
   "keywords": [
     "template-webchat-customization"
   ],
+  "msw": {
+    "workerDirectory": [
+      "public/asset/js"
+    ]
+  },
   "scripts": {
     "build": "esbuild --bundle --entry-names=[ext]/[name] --jsx=automatic --minify --outdir=./public/static/ --sourcemap app=./src/app/index.tsx",
     "bump": "npm run bump:prod && npm run bump:dev",
@@ -40,10 +45,5 @@
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-react": "^7.37.4",
     "typescript": "^5.7.3"
-  },
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
   }
 }
