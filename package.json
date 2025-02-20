@@ -18,8 +18,11 @@
   },
   "dependencies": {
     "botframework-webchat": "^4.18.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "copilot-studio-direct-to-engine-chat-adapter": "^0.0.0-main.20240125-144152.a390446",
+    "iter-fest": "^0.2.1",
+    "msw": "^2.7.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "use-ref-from": "^0.1.0",
     "use-state-with-ref": "^0.1.0"
   },
@@ -36,5 +39,10 @@
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-react": "^7.37.4",
     "typescript": "^5.7.3"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
