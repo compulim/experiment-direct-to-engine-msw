@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "botframework-webchat": "^4.18.0",
-    "copilot-studio-direct-to-engine-chat-adapter": "^0.0.0-main.20240125-144152.a390446",
+    "copilot-studio-direct-to-engine-chat-adapter": "^0.0.0-main.20241022-173702.3e37c28",
     "iter-fest": "^0.2.1",
     "msw": "^2.7.0",
     "on-error-resume-next": "^2.0.2",

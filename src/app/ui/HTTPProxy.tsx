@@ -53,18 +53,13 @@ const HTTPProxy = ({ onReady }: HTTPProxyProps) => {
 
             controller.enqueue(
               encoder.encode(
-                `name: activity\ndata: ${JSON.stringify({
-                  activities: [
-                    {
-                      from: { role: 'bot' },
-                      id: `a-${countRef.current++}`,
-                      text: `#${countRef.current}: Hello, World!`,
-                      timestamp: new Date().toISOString(),
-                      type: 'message'
-                    }
-                  ],
-                  conversationId: 'c-00001'
-                })}\n\n\n\n`
+                `event: activity\ndata: ${JSON.stringify({
+                  from: { role: 'bot' },
+                  id: `a-${countRef.current++}`,
+                  text: `#${countRef.current}: Hello, World!`,
+                  timestamp: new Date().toISOString(),
+                  type: 'message'
+                })}\n\nevent: end\ndata: end\n\n\n\n`
               )
             );
 
@@ -98,7 +93,9 @@ const HTTPProxy = ({ onReady }: HTTPProxyProps) => {
           }
         })();
 
-        return new HttpResponse(stream1, { headers: { 'content-type': 'text/event-stream' } });
+        return new HttpResponse(stream1, {
+          headers: { 'content-type': 'text/event-stream', 'x-ms-conversationid': 'c-00001' }
+        });
       }),
       http.post('/environments/environment-id/bots/bot-id/test/conversations/:conversationId', async ({ request }) => {
         const json = await request.text();
@@ -123,18 +120,13 @@ const HTTPProxy = ({ onReady }: HTTPProxyProps) => {
 
             controller.enqueue(
               encoder.encode(
-                `name: activity\ndata: ${JSON.stringify({
-                  activities: [
-                    {
-                      from: { role: 'bot' },
-                      id: `a-${countRef.current++}`,
-                      text: `#${countRef.current}: Aloha! "${JSON.parse(json).activity.text}"`,
-                      timestamp: new Date().toISOString(),
-                      type: 'message'
-                    }
-                  ],
-                  conversationId: 'c-00001'
-                })}\n\n\n\n`
+                `event: activity\ndata: ${JSON.stringify({
+                  from: { role: 'bot' },
+                  id: `a-${countRef.current++}`,
+                  text: `#${countRef.current}: Aloha! "${JSON.parse(json).activity.text}"`,
+                  timestamp: new Date().toISOString(),
+                  type: 'message'
+                })}\n\nevent: end\ndata: end\n\n\n\n`
               )
             );
 
