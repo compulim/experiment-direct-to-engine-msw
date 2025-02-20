@@ -31,137 +31,143 @@ const HTTPProxy = ({ onReady }: HTTPProxyProps) => {
     const abortController = new AbortController();
 
     const worker = setupWorker(
-      http.post('https://example.com/environments/environment-id/bots/bot-id/test/conversations', async ({ request }) => {
-        const id = crypto.randomUUID();
-        const nextFrame = {
-          id,
-          request: {
-            body: await request.text(),
-            headers: request.headers
-          },
-          response: {
-            body: '',
-            headers: new Headers()
-          }
-        };
-
-        setFrames(frames => [...frames, nextFrame]);
-
-        const stream = new ReadableStream({
-          start(controller) {
-            const encoder = new TextEncoder();
-
-            controller.enqueue(
-              encoder.encode(
-                `event: activity\ndata: ${JSON.stringify({
-                  from: { role: 'bot' },
-                  id: `a-${countRef.current++}`,
-                  text: `#${countRef.current}: Hello, World!`,
-                  timestamp: new Date().toISOString(),
-                  type: 'message'
-                })}\n\nevent: end\ndata: end\n\n\n\n`
-              )
-            );
-
-            controller.close();
-          }
-        });
-
-        const [stream1, stream2] = stream.tee();
-
-        (async () => {
-          const decoder = new TextDecoder();
-
-          for await (const chunk of readableStreamValues(stream2)) {
-            if (abortController.signal.aborted) {
-              break;
+      http.post(
+        'https://example.com/environments/environment-id/bots/bot-id/test/conversations',
+        async ({ request }) => {
+          const id = crypto.randomUUID();
+          const nextFrame = {
+            id,
+            request: {
+              body: await request.text(),
+              headers: request.headers
+            },
+            response: {
+              body: '',
+              headers: new Headers()
             }
+          };
 
-            setFrames(frames =>
-              frames.map(frame => {
-                return frame.id === id
-                  ? {
-                      ...frame,
-                      response: {
-                        ...frame.response,
-                        body: `${frame.response?.body}${decoder.decode(chunk)}`
-                      }
-                    }
-                  : frame;
-              })
-            );
-          }
-        })();
+          setFrames(frames => [...frames, nextFrame]);
 
-        return new HttpResponse(stream1, {
-          headers: { 'content-type': 'text/event-stream', 'x-ms-conversationid': 'c-00001' }
-        });
-      }),
-      http.post('https://example.com/environments/environment-id/bots/bot-id/test/conversations/:conversationId', async ({ request }) => {
-        const json = await request.text();
-        const id = crypto.randomUUID();
-        const nextFrame = {
-          id,
-          request: {
-            body: json,
-            headers: request.headers
-          },
-          response: {
-            body: '',
-            headers: new Headers()
-          }
-        };
+          const stream = new ReadableStream({
+            start(controller) {
+              const encoder = new TextEncoder();
 
-        setFrames(frames => [...frames, nextFrame]);
+              controller.enqueue(
+                encoder.encode(
+                  `event: activity\ndata: ${JSON.stringify({
+                    from: { role: 'bot' },
+                    id: `a-${countRef.current++}`,
+                    text: `#${countRef.current}: Hello, World!`,
+                    timestamp: new Date().toISOString(),
+                    type: 'message'
+                  })}\n\nevent: end\ndata: end\n\n\n\n`
+                )
+              );
 
-        const stream = new ReadableStream({
-          start(controller) {
-            const encoder = new TextEncoder();
-
-            controller.enqueue(
-              encoder.encode(
-                `event: activity\ndata: ${JSON.stringify({
-                  from: { role: 'bot' },
-                  id: `a-${countRef.current++}`,
-                  text: `#${countRef.current}: Aloha! "${JSON.parse(json).activity.text}"`,
-                  timestamp: new Date().toISOString(),
-                  type: 'message'
-                })}\n\nevent: end\ndata: end\n\n\n\n`
-              )
-            );
-
-            controller.close();
-          }
-        });
-
-        const [stream1, stream2] = stream.tee();
-
-        (async () => {
-          const decoder = new TextDecoder();
-
-          for await (const chunk of readableStreamValues(stream2)) {
-            if (abortController.signal.aborted) {
-              break;
+              controller.close();
             }
+          });
 
-            setFrames(frames =>
-              frames.map(frame => {
-                return frame.id === id
-                  ? {
-                      ...frame,
-                      response: {
-                        ...frame.response,
-                        body: `${frame.response?.body}${decoder.decode(chunk)}`
+          const [stream1, stream2] = stream.tee();
+
+          (async () => {
+            const decoder = new TextDecoder();
+
+            for await (const chunk of readableStreamValues(stream2)) {
+              if (abortController.signal.aborted) {
+                break;
+              }
+
+              setFrames(frames =>
+                frames.map(frame => {
+                  return frame.id === id
+                    ? {
+                        ...frame,
+                        response: {
+                          ...frame.response,
+                          body: `${frame.response?.body}${decoder.decode(chunk)}`
+                        }
                       }
-                    }
-                  : frame;
-              })
-            );
-          }
-        })();
+                    : frame;
+                })
+              );
+            }
+          })();
 
-        return new HttpResponse(stream1, { headers: { 'content-type': 'text/event-stream' } });
-      }),
+          return new HttpResponse(stream1, {
+            headers: { 'content-type': 'text/event-stream', 'x-ms-conversationid': 'c-00001' }
+          });
+        }
+      ),
+      http.post(
+        'https://example.com/environments/environment-id/bots/bot-id/test/conversations/:conversationId',
+        async ({ request }) => {
+          const json = await request.text();
+          const id = crypto.randomUUID();
+          const nextFrame = {
+            id,
+            request: {
+              body: json,
+              headers: request.headers
+            },
+            response: {
+              body: '',
+              headers: new Headers()
+            }
+          };
+
+          setFrames(frames => [...frames, nextFrame]);
+
+          const stream = new ReadableStream({
+            start(controller) {
+              const encoder = new TextEncoder();
+
+              controller.enqueue(
+                encoder.encode(
+                  `event: activity\ndata: ${JSON.stringify({
+                    from: { role: 'bot' },
+                    id: `a-${countRef.current++}`,
+                    text: `#${countRef.current}: Aloha! "${JSON.parse(json).activity.text}"`,
+                    timestamp: new Date().toISOString(),
+                    type: 'message'
+                  })}\n\nevent: end\ndata: end\n\n\n\n`
+                )
+              );
+
+              controller.close();
+            }
+          });
+
+          const [stream1, stream2] = stream.tee();
+
+          (async () => {
+            const decoder = new TextDecoder();
+
+            for await (const chunk of readableStreamValues(stream2)) {
+              if (abortController.signal.aborted) {
+                break;
+              }
+
+              setFrames(frames =>
+                frames.map(frame => {
+                  return frame.id === id
+                    ? {
+                        ...frame,
+                        response: {
+                          ...frame.response,
+                          body: `${frame.response?.body}${decoder.decode(chunk)}`
+                        }
+                      }
+                    : frame;
+                })
+              );
+            }
+          })();
+
+          return new HttpResponse(stream1, { headers: { 'content-type': 'text/event-stream' } });
+        }
+      ),
       http.all('*', () => passthrough())
     );
 
