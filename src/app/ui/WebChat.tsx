@@ -37,7 +37,7 @@ export default memo(function Chat() {
     })();
 
     return toDirectLineJS(turnGenerator);
-  }, []);
+  }, [strategy]);
 
   return (
     <div className="chat">
