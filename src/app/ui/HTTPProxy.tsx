@@ -103,9 +103,11 @@ const HTTPProxy = ({ onReady }: HTTPProxyProps) => {
     );
 
     (async signal => {
-      await worker.start({ serviceWorker: {
-        url: './mockServiceWorker.js'
-      } });
+      await worker.start({
+        serviceWorker: {
+          url: './mockServiceWorker.js'
+        }
+      });
 
       signal.aborted || onReadyRef.current?.();
     })(abortController.signal);
