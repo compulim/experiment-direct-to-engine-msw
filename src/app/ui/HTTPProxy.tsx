@@ -3,7 +3,7 @@ import './HTTPProxy.css';
 
 import { http, HttpResponse, passthrough } from 'msw';
 import { setupWorker } from 'msw/browser';
-import { Fragment, memo, useEffect, useState } from 'react';
+import { Fragment, memo, useEffect, useRef, useState } from 'react';
 import { useRefFrom } from 'use-ref-from';
 
 type Frame = {
@@ -25,6 +25,7 @@ type HTTPProxyProps = {
 const HTTPProxy = ({ onReady }: HTTPProxyProps) => {
   const [frames, setFrames] = useState<Frame[]>([]);
   const onReadyRef = useRefFrom(onReady);
+  const countRef = useRef(0);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -56,14 +57,84 @@ const HTTPProxy = ({ onReady }: HTTPProxyProps) => {
                   activities: [
                     {
                       from: { role: 'bot' },
-                      id: 'a-00001',
-                      text: 'Hello, World!',
+                      id: `a-${countRef.current++}`,
+                      text: `#${countRef.current}: Hello, World!`,
                       timestamp: new Date().toISOString(),
                       type: 'message'
                     }
                   ],
                   conversationId: 'c-00001'
-                })}\n\nname: end\ndata: end\n\n\n\n`
+                })}\n\n\n\n`
+              )
+            );
+
+            controller.close();
+          }
+        });
+
+        const [stream1, stream2] = stream.tee();
+
+        (async () => {
+          const decoder = new TextDecoder();
+
+          for await (const chunk of readableStreamValues(stream2)) {
+            if (abortController.signal.aborted) {
+              break;
+            }
+
+            setFrames(frames =>
+              frames.map(frame => {
+                return frame.id === id
+                  ? {
+                      ...frame,
+                      response: {
+                        ...frame.response,
+                        body: `${frame.response?.body}${decoder.decode(chunk)}`
+                      }
+                    }
+                  : frame;
+              })
+            );
+          }
+        })();
+
+        return new HttpResponse(stream1, { headers: { 'content-type': 'text/event-stream' } });
+      }),
+      http.post('/environments/environment-id/bots/bot-id/test/conversations/:conversationId', async ({ request }) => {
+        const json = await request.text();
+        const id = crypto.randomUUID();
+        const nextFrame = {
+          id,
+          request: {
+            body: json,
+            headers: request.headers
+          },
+          response: {
+            body: '',
+            headers: new Headers()
+          }
+        };
+
+        setFrames(frames => [...frames, nextFrame]);
+
+        const stream = new ReadableStream({
+          start(controller) {
+            const encoder = new TextEncoder();
+
+            controller.enqueue(
+              encoder.encode(
+                `name: activity\ndata: ${JSON.stringify({
+                  activities: [
+                    {
+                      from: { role: 'bot' },
+                      id: `a-${countRef.current++}`,
+                      text: `#${countRef.current}: Aloha! "${JSON.parse(json).activity.text}"`,
+                      timestamp: new Date().toISOString(),
+                      type: 'message'
+                    }
+                  ],
+                  conversationId: 'c-00001'
+                })}\n\n\n\n`
               )
             );
 
