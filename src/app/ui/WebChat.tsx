@@ -4,37 +4,41 @@ import { Components } from 'botframework-webchat';
 import {
   TestCanvasBotStrategy,
   createHalfDuplexChatAdapter,
-  toDirectLineJS
+  toDirectLineJS,
+  type TurnGenerator
 } from 'copilot-studio-direct-to-engine-chat-adapter';
 import { asyncGeneratorWithLastValue } from 'iter-fest';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 
 const { BasicWebChat, Composer } = Components;
 
 export default memo(function Chat() {
-  const startConversation = createHalfDuplexChatAdapter(
-    new TestCanvasBotStrategy({
-      botId: 'bot-id',
-      environmentId: 'environment-id',
-      async getToken() {
-        return 'token';
-      },
-      islandURI: new URL('/api/directtoengine/', location.href),
-      transport: 'auto'
-    })
-  );
+  const directLine = useMemo(() => {
+    const startConversation = createHalfDuplexChatAdapter(
+      new TestCanvasBotStrategy({
+        botId: 'bot-id',
+        environmentId: 'environment-id',
+        async getToken() {
+          return 'token';
+        },
+        islandURI: new URL('https://example.com/api/directtoengine/', location.href),
+        transport: 'auto'
+      })
+    );
 
-  const nextStartConversation: typeof startConversation = (async function* () {
-    const turnGenerator = asyncGeneratorWithLastValue(startConversation);
+    const patchTurnGenerator: (turnGenerator: TurnGenerator) => TurnGenerator = turnGenerator =>
+      (async function* () {
+        const turnGeneratorWithLastValue = asyncGeneratorWithLastValue(turnGenerator);
 
-    for await (const activity of turnGenerator) {
-      yield activity;
-    }
+        for await (const activity of turnGeneratorWithLastValue) {
+          yield activity;
+        }
 
-    return turnGenerator.lastValue();
-  })();
+        return (...args) => patchTurnGenerator(turnGeneratorWithLastValue.lastValue()(...args));
+      })();
 
-  const directLine = toDirectLineJS(nextStartConversation);
+    return toDirectLineJS(patchTurnGenerator(startConversation));
+  }, []);
 
   return (
     <div className="chat">

@@ -31,7 +31,7 @@ const HTTPProxy = ({ onReady }: HTTPProxyProps) => {
     const abortController = new AbortController();
 
     const worker = setupWorker(
-      http.post('/environments/environment-id/bots/bot-id/test/conversations', async ({ request }) => {
+      http.post('https://example.com/environments/environment-id/bots/bot-id/test/conversations', async ({ request }) => {
         const id = crypto.randomUUID();
         const nextFrame = {
           id,
@@ -97,7 +97,7 @@ const HTTPProxy = ({ onReady }: HTTPProxyProps) => {
           headers: { 'content-type': 'text/event-stream', 'x-ms-conversationid': 'c-00001' }
         });
       }),
-      http.post('/environments/environment-id/bots/bot-id/test/conversations/:conversationId', async ({ request }) => {
+      http.post('https://example.com/environments/environment-id/bots/bot-id/test/conversations/:conversationId', async ({ request }) => {
         const json = await request.text();
         const id = crypto.randomUUID();
         const nextFrame = {
