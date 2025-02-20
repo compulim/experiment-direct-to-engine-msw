@@ -7,7 +7,7 @@
   ],
   "msw": {
     "workerDirectory": [
-      "public/asset/js"
+      "public"
     ]
   },
   "scripts": {
